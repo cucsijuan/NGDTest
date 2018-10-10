@@ -40,7 +40,7 @@ public:
 	float Speed = 250.f;
 	
 	AMagicCube();
-	void Explode(class APlayerState * InstigatorState);
+	void Explode(class APlayerState * InstigatorState, int ChainPosition = 0, TArray<AMagicCube *> ExplodedCubes = {});
 	FString GetColorName() const;
 	void SetColorName(int ColorID);
 	bool IsSameColor(AMagicCube * other) const;

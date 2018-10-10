@@ -13,8 +13,11 @@ UCLASS()
 class NGDTEST_API ANGDTestPlayerState : public APlayerState
 {
 	GENERATED_BODY()
-	
-	
-	
-	
+
+public:
+	void DoScore(int ChainPosition);
+
+private:
+	int ChainPositionToFibonacci(int ChainPosition);
+	int ChainPositionToFibonacciRec(int ChainPosition);
 };

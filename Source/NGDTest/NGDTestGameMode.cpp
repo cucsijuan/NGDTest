@@ -3,6 +3,8 @@
 #include "NGDTestGameMode.h"
 #include "NGDTestHUD.h"
 #include "NGDTestCharacter.h"
+#include "NGDTestPlayerState.h"
+#include "NGDTestGameStateBase.h"
 #include "UObject/ConstructorHelpers.h"
 
 ANGDTestGameMode::ANGDTestGameMode()
@@ -12,6 +14,8 @@ ANGDTestGameMode::ANGDTestGameMode()
 	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnClassFinder(TEXT("/Game/FirstPersonCPP/Blueprints/FirstPersonCharacter"));
 	DefaultPawnClass = PlayerPawnClassFinder.Class;
 
-	// use our custom HUD class
+	// Set Custom Classes
 	HUDClass = ANGDTestHUD::StaticClass();
+	PlayerStateClass = ANGDTestPlayerState::StaticClass();
+	GameStateClass = ANGDTestGameStateBase::StaticClass();
 }

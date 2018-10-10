@@ -41,7 +41,7 @@ void ANGDTestProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor,
 	{
 	UE_LOG(LogTemp, Warning, TEXT("Collided: %s"),*OtherActor->StaticClass()->GetFName().ToString());
 		
-		Cast<AMagicCube>(OtherActor)->Explode(Cast<APlayerController>(GetInstigator()->GetController())->PlayerState);
+		Cast<AMagicCube>(OtherActor)->Explode(Cast<APlayerController>(GetInstigator()->GetController())->PlayerState,1);
 		Destroy();
 	}
 }

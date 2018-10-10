@@ -7,7 +7,7 @@
 #include "DrawDebugHelpers.h"
 #include "ConstructorHelpers.h"
 #include "Engine/World.h"
-#include "GameFramework/PlayerState.h"
+#include "NGDTestPlayerState.h"
 
 AMagicCube::AMagicCube()
 {
@@ -114,26 +114,34 @@ void AMagicCube::AssignCubeColor()
 	
 }
 
-void AMagicCube::Explode(APlayerState * InstigatorState)
+void AMagicCube::Explode(APlayerState * InstigatorState,int ChainPosition, TArray<AMagicCube *> ExplodedCubes)
 {
 	if (Exploding) return;
 
 	Exploding = true;
-
-	UE_LOG(LogTemp, Warning, TEXT("Cube Exploding: %s"), *CurrentColorName);
 	
+	//increase player Score
+	UE_LOG(LogTemp, Warning, TEXT("Chain: %d"), ChainPosition);
+	Cast<ANGDTestPlayerState>(InstigatorState)->DoScore(ChainPosition);
+
+	//Find and save cubes with the same color
 	TArray<AMagicCube *> FoundCubes = FindNearbyCubes();
 	
 	for (auto& Cube : FoundCubes)
 	{
-		if (IsSameColor(Cube)) Cube->Explode(InstigatorState);
+		//check if the cube already exploded
+		if (!ExplodedCubes.Contains(Cube))
+		{
+			//Store the found cubes along with the ones who exploded
+			//so the next cube knows who already exploded or is set to explode
+			TArray<AMagicCube *> TempCubes;
+			TempCubes.Append(ExplodedCubes);
+			TempCubes.Append(FoundCubes);
+			Cube->Explode(InstigatorState, ChainPosition + 1, TempCubes);
+		}
 	}
 
-	//increase player Score
-	InstigatorState->Score += 1;
-
-	//debug
-	UE_LOG(LogTemp, Warning, TEXT("Score: %f"), InstigatorState->Score);
+	
 	Destroy();
 }
 
@@ -166,8 +174,7 @@ TArray<AMagicCube *> AMagicCube::FindNearbyCubes()
 	if (GetWorld()->LineTraceSingleByChannel(OutHit, Start + RightOffset, RightEnd, ECC_Visibility, CollisionParams, CollisionRespParams) 
 		&& (OutHit.GetActor()->IsA(AMagicCube::StaticClass())))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("The Component Being Hit is: %s"), *OutHit.GetComponent()->GetName())
-		CubesToDestroy.Add(Cast<AMagicCube>(OutHit.GetActor()));
+		if (IsSameColor(Cast<AMagicCube>(OutHit.GetActor()))) CubesToDestroy.Add(Cast<AMagicCube>(OutHit.GetActor()));
 	}
 
 	DrawDebugLine(GetWorld(), Start - RightOffset, LeftEnd, FColor::Green, false, 1, 0, 5);
@@ -175,8 +182,7 @@ TArray<AMagicCube *> AMagicCube::FindNearbyCubes()
 	if (GetWorld()->LineTraceSingleByChannel(OutHit, Start - RightOffset, LeftEnd, ECC_Visibility, CollisionParams, CollisionRespParams)
 		&& (OutHit.GetActor()->IsA(AMagicCube::StaticClass())))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("The Component Being Hit is: %s"), *OutHit.GetComponent()->GetName());
-		CubesToDestroy.Add(Cast<AMagicCube>(OutHit.GetActor()));
+		if (IsSameColor(Cast<AMagicCube>(OutHit.GetActor()))) CubesToDestroy.Add(Cast<AMagicCube>(OutHit.GetActor()));
 	}
 
 	DrawDebugLine(GetWorld(), Start + UpOffset, UpEnd, FColor::Blue, false, 1, 0, 5);
@@ -184,8 +190,7 @@ TArray<AMagicCube *> AMagicCube::FindNearbyCubes()
 	if (GetWorld()->LineTraceSingleByChannel(OutHit, Start + UpOffset, UpEnd, ECC_Visibility, CollisionParams, CollisionRespParams) 
 		&& (OutHit.GetActor()->IsA(AMagicCube::StaticClass())))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("The Component Being Hit is: %s"), *OutHit.GetComponent()->GetName());
-		CubesToDestroy.Add(Cast<AMagicCube>(OutHit.GetActor()));
+		if (IsSameColor(Cast<AMagicCube>(OutHit.GetActor()))) CubesToDestroy.Add(Cast<AMagicCube>(OutHit.GetActor()));
 	}
 
 	DrawDebugLine(GetWorld(), Start - UpOffset, DownEnd, FColor::Purple, false, 1, 0, 5);
@@ -193,8 +198,7 @@ TArray<AMagicCube *> AMagicCube::FindNearbyCubes()
 	if (GetWorld()->LineTraceSingleByChannel(OutHit, Start - UpOffset, DownEnd, ECC_Visibility, CollisionParams, CollisionRespParams)
 		&& (OutHit.GetActor()->IsA(AMagicCube::StaticClass())))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("The Component Being Hit is: %s"), *OutHit.GetComponent()->GetName());
-		CubesToDestroy.Add(Cast<AMagicCube>(OutHit.GetActor()));
+		if (IsSameColor(Cast<AMagicCube>(OutHit.GetActor()))) CubesToDestroy.Add(Cast<AMagicCube>(OutHit.GetActor()));
 	}
 
 	return CubesToDestroy;
