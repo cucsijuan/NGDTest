@@ -18,6 +18,8 @@ private:
 	UPROPERTY()
 	UStaticMeshComponent* MeshComponent;
 	UPROPERTY()
+	class UMaterial * Material;
+	UPROPERTY()
 	class UMaterialInstanceDynamic * DynMaterial;
 	UPROPERTY()
 	TArray <FColor> Colors = { FColor::Red,FColor::Blue,FColor::Green};
@@ -34,8 +36,6 @@ private:
 	bool ShouldFall();
 
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Config")
-	class UMaterial * Material;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Config")
 	float Speed = 250.f;
 	

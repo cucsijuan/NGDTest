@@ -27,13 +27,20 @@ AMagicCube::AMagicCube()
 		MeshComponent->SetWorldScale3D(FVector(1.5f));
 	}
 
+	//Setup Mesh material
+	static ConstructorHelpers::FObjectFinder<UMaterial>MaterialAsset(TEXT("/Game/FirstPerson/Meshes/BaseMaterial.BaseMaterial"));
+	if (MaterialAsset.Succeeded())
+	{
+		Material = MaterialAsset.Object;
+		
+	}
+
 }
 
 void AMagicCube::BeginPlay()
 {
 	Super::BeginPlay();
 	AssignCubeColor();
-
 }
 
 void AMagicCube::Tick(float DeltaTime)
@@ -95,7 +102,6 @@ bool AMagicCube::ShouldFall()
 
 void AMagicCube::AssignCubeColor()
 {
-	TArray<UStaticMeshComponent *> MainMesh;
 	int ColorNum = FMath::RandRange(0, 2);
 
 	DynMaterial = UMaterialInstanceDynamic::Create(Material, this);
