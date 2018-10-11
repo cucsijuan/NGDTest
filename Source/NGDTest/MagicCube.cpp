@@ -7,10 +7,13 @@
 #include "DrawDebugHelpers.h"
 #include "ConstructorHelpers.h"
 #include "Engine/World.h"
+#include "Net/UnrealNetwork.h"
 #include "NGDTestPlayerState.h"
 
 AMagicCube::AMagicCube()
 {
+	bReplicates = true;
+	bReplicateMovement = true;
 	PrimaryActorTick.bCanEverTick = true;
 	SetMobility(EComponentMobility::Movable);
 
@@ -37,10 +40,16 @@ AMagicCube::AMagicCube()
 
 }
 
+void AMagicCube::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	// Here we list the variables we want to replicate + a condition if wanted
+	DOREPLIFETIME(AMagicCube, Material);
+	DOREPLIFETIME(AMagicCube, MeshComponent);
+}
+
 void AMagicCube::BeginPlay()
 {
 	Super::BeginPlay();
-	AssignCubeColor();
 }
 
 void AMagicCube::Tick(float DeltaTime)
@@ -100,10 +109,8 @@ bool AMagicCube::ShouldFall()
 	}
 }
 
-void AMagicCube::AssignCubeColor()
+void AMagicCube::AssignCubeColor(int ColorNum)
 {
-	int ColorNum = FMath::RandRange(0, 2);
-
 	DynMaterial = UMaterialInstanceDynamic::Create(Material, this);
 	DynMaterial->SetVectorParameterValue("DiffuseColor", Colors[ColorNum]);
 	DynMaterial->SetVectorParameterValue("EmissiveColor", Colors[ColorNum]);
@@ -143,6 +150,11 @@ void AMagicCube::Explode(APlayerState * InstigatorState,int ChainPosition, TArra
 
 	
 	Destroy();
+}
+
+void AMagicCube::OnRep_Material(UMaterialInstanceDynamic * Mat)
+{
+	MeshComponent->SetMaterial(0, Mat);
 }
 
 TArray<AMagicCube *> AMagicCube::FindNearbyCubes()

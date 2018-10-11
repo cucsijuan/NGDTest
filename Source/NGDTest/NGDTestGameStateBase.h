@@ -13,8 +13,19 @@ UCLASS()
 class NGDTEST_API ANGDTestGameStateBase : public AGameStateBase
 {
 	GENERATED_BODY()
-	
-	
-	
+private:
+	UPROPERTY()
+	TArray<int> PyramidSteps = { 3,3,2,2,1,1,0 };
+public:
+	UPROPERTY()
+	TSubclassOf<class AMagicCube> MagicCubeClass;
+	UPROPERTY()
+	AActor * Spawner;
+
+	void SetSpawner();
+	void SpawnCube();
+
+protected:
+	virtual void BeginPlay() override;	
 	
 };
