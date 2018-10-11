@@ -4,8 +4,9 @@
 
 void ANGDTestPlayerState::DoScore(int ChainPosition) {
 	Score += ChainPositionToFibonacciRec(ChainPosition);
-	
+	AddExplodedCube();
 }
+
 
 int ANGDTestPlayerState::ChainPositionToFibonacci(int ChainPosition)
 {
@@ -23,6 +24,16 @@ int ANGDTestPlayerState::ChainPositionToFibonacciRec(int ChainPosition)
 		b = c;
 	}
 	return b;
+}
+
+void ANGDTestPlayerState::AddExplodedCube()
+{
+	ExplodedCubes++;
+}
+
+int ANGDTestPlayerState::GetExplodedCubes()
+{
+	return ExplodedCubes;
 }
 
 

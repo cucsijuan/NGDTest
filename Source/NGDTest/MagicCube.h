@@ -15,11 +15,11 @@ class NGDTEST_API AMagicCube : public AStaticMeshActor
 	GENERATED_BODY()
 	
 private:
-	UPROPERTY(Replicated)
+	UPROPERTY()
 	UStaticMeshComponent* MeshComponent;
-	UPROPERTY(Replicated)
+	UPROPERTY()
 	class UMaterial * Material;
-	UPROPERTY(ReplicatedUsing = OnRep_Material)
+	UPROPERTY()
 	class UMaterialInstanceDynamic * DynMaterial;
 	UPROPERTY()
 	TArray <FColor> Colors = { FColor::Red,FColor::Blue,FColor::Green};
@@ -32,8 +32,6 @@ private:
 	UPROPERTY()
 	FVector NewLocation;
 	
-	UFUNCTION()
-	void OnRep_Material(UMaterialInstanceDynamic * Mat);
 	TArray<AMagicCube *> FindNearbyCubes();
 	bool ShouldFall();
 

@@ -12,8 +12,6 @@
 
 AMagicCube::AMagicCube()
 {
-	bReplicates = true;
-	bReplicateMovement = true;
 	PrimaryActorTick.bCanEverTick = true;
 	SetMobility(EComponentMobility::Movable);
 
@@ -39,13 +37,6 @@ AMagicCube::AMagicCube()
 	}
 
 }
-
-void AMagicCube::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	// Here we list the variables we want to replicate + a condition if wanted
-	DOREPLIFETIME(AMagicCube, Material);
-	DOREPLIFETIME(AMagicCube, MeshComponent);
-}
 
 void AMagicCube::BeginPlay()
 {
@@ -148,13 +139,7 @@ void AMagicCube::Explode(APlayerState * InstigatorState,int ChainPosition, TArra
 		}
 	}
 
-	
 	Destroy();
-}
-
-void AMagicCube::OnRep_Material(UMaterialInstanceDynamic * Mat)
-{
-	MeshComponent->SetMaterial(0, Mat);
 }
 
 TArray<AMagicCube *> AMagicCube::FindNearbyCubes()

@@ -3,18 +3,25 @@
 #include "NGDTestGameStateBase.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
+#include "NGDTestPlayerState.h"
 #include "MagicCube.h"
 
 
 void ANGDTestGameStateBase::BeginPlay()
 {
 	Super::BeginPlay();
-	if (HasAuthority())
+
+	SetSpawner();
+	if (Spawner != NULL) SpawnCube();
+
+}
+void ANGDTestGameStateBase::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	for (auto& Player : PlayerArray)
 	{
-		SetSpawner();
-		if (Spawner != NULL) SpawnCube();
+		if (Cast<ANGDTestPlayerState>(Player)->GetExplodedCubes() >= MAX_CUBES);
 	}
-	
 }
 
 void ANGDTestGameStateBase::SetSpawner()

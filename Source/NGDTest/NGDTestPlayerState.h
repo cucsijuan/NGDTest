@@ -16,8 +16,11 @@ class NGDTEST_API ANGDTestPlayerState : public APlayerState
 
 public:
 	void DoScore(int ChainPosition);
-
+	void AddExplodedCube();
+	int GetExplodedCubes();
 private:
+	UPROPERTY()
+	int ExplodedCubes;
 	int ChainPositionToFibonacci(int ChainPosition);
 	int ChainPositionToFibonacciRec(int ChainPosition);
 };

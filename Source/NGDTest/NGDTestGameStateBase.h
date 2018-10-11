@@ -18,6 +18,8 @@ private:
 	TArray<int> PyramidSteps = { 3,3,2,2,1,1,0 };
 public:
 	UPROPERTY()
+	static const int MAX_CUBES = 28;
+	UPROPERTY()
 	TSubclassOf<class AMagicCube> MagicCubeClass;
 	UPROPERTY()
 	AActor * Spawner;
@@ -27,5 +29,5 @@ public:
 
 protected:
 	virtual void BeginPlay() override;	
-	
+	virtual void Tick(float DeltaTime) override;
 };
