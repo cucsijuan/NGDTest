@@ -40,7 +40,7 @@ void ANGDTestProjectile::OnHit_Implementation(UPrimitiveComponent* HitComp, AAct
 	//If we are colliding with a MagicCube then begin cube's destroying process
 	if ((OtherActor != NULL) && (OtherActor != this) && (OtherComp != NULL) && (OtherActor->IsA(AMagicCube::StaticClass())))
 	{
-		if (HitComp->GetOwnerRole() < ROLE_Authority)
+		if (HitComp->GetOwnerRole() == ROLE_Authority)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Collided: %s"), *OtherActor->StaticClass()->GetFName().ToString());
 			Cast<AMagicCube>(OtherActor)->Explode(Cast<APlayerController>(GetInstigator()->GetController())->PlayerState, 1);

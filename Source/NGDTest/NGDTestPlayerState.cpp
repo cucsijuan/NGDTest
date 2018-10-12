@@ -2,11 +2,11 @@
 
 #include "NGDTestPlayerState.h"
 
-void ANGDTestPlayerState::DoScore(int ChainPosition) {
+void ANGDTestPlayerState::DoScore(int ChainPosition) 
+{
 	Score += ChainPositionToFibonacciRec(ChainPosition);
 	AddExplodedCube();
 }
-
 
 int ANGDTestPlayerState::ChainPositionToFibonacci(int ChainPosition)
 {

@@ -33,6 +33,10 @@ class ANGDTestCharacter : public ACharacter
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	class USceneComponent* VR_MuzzleLocation;
 
+	/** This Pivot will be use to move the arms */
+	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+	class USceneComponent* PivotComponent;
+
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FirstPersonCameraComponent;
@@ -44,6 +48,8 @@ class ANGDTestCharacter : public ACharacter
 	/** Motion controller (left hand) */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UMotionControllerComponent* L_MotionController;
+
+
 
 public:
 	ANGDTestCharacter();
@@ -80,8 +86,22 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint32 bUsingMotionControllers : 1;
 
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	FRotator WeaponPitch;
+
 protected:
-	
+	/** Server Spawns a client projectile **/
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Fire(FRotator Pitch);
+
+	/** Sends Fire sound and anim to all clients **/
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastFire(FRotator Pitch);
+
+	/** Sends Weapon pitch to all clients **/
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastWeaponPitch(FRotator Pitch);
+
 	/** Fires a projectile. */
 	void OnFire();
 

@@ -9,6 +9,7 @@
 #include "GameFramework/InputSettings.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 
@@ -17,8 +18,17 @@ DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 //////////////////////////////////////////////////////////////////////////
 // ANGDTestCharacter
 
+void ANGDTestCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	// Here we list the variables we want to replicate + a condition if wanted
+	DOREPLIFETIME(ANGDTestCharacter, WeaponPitch);
+}
+
 ANGDTestCharacter::ANGDTestCharacter()
 {
+	// Set Replication
+	bReplicates = true;
+	bReplicateMovement = true;
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
 
@@ -31,11 +41,16 @@ ANGDTestCharacter::ANGDTestCharacter()
 	FirstPersonCameraComponent->SetupAttachment(GetCapsuleComponent());
 	FirstPersonCameraComponent->RelativeLocation = FVector(-39.56f, 1.75f, 64.f); // Position the camera
 	FirstPersonCameraComponent->bUsePawnControlRotation = true;
+	
+	//Create PivotComponent
+	PivotComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Pivot"));
+	PivotComponent->SetupAttachment(GetCapsuleComponent());
+	PivotComponent->RelativeLocation = FVector(-39.56f, 1.75f, 64.f);
 
 	// Create a mesh component that will be used when being viewed from a '1st person' view (when controlling this pawn)
 	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CharacterMesh1P"));
 	Mesh1P->SetOnlyOwnerSee(true);
-	Mesh1P->SetupAttachment(FirstPersonCameraComponent);
+	Mesh1P->SetupAttachment(PivotComponent);
 	Mesh1P->bCastDynamicShadow = false;
 	Mesh1P->CastShadow = false;
 	Mesh1P->RelativeRotation = FRotator(1.9f, -19.19f, 5.2f);
@@ -138,38 +153,38 @@ void ANGDTestCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ANGDTestCharacter::LookUpAtRate);
 }
 
-void ANGDTestCharacter::OnFire()
+void ANGDTestCharacter::Fire_Implementation(FRotator Pitch)
 {
+	MulticastFire(Pitch);
+
 	// try and fire a projectile
 	if (ProjectileClass != NULL)
 	{
 		UWorld* const World = GetWorld();
 		if (World != NULL)
 		{
-			
-			if (bUsingMotionControllers)
-			{
-				const FRotator SpawnRotation = VR_MuzzleLocation->GetComponentRotation();
-				const FVector SpawnLocation = VR_MuzzleLocation->GetComponentLocation();
-				World->SpawnActor<ANGDTestProjectile>(ProjectileClass, SpawnLocation, SpawnRotation);
-			}
-			else
-			{
-				const FRotator SpawnRotation = GetControlRotation();
-				// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-				const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
+			const FRotator SpawnRotation = GetControlRotation();
+			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
+			const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + Pitch.RotateVector(GunOffset);
 
-				//Set Spawn Collision Handling Override
-				FActorSpawnParameters ActorSpawnParams;
-				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
-				ActorSpawnParams.Instigator = this;
-				ActorSpawnParams.Owner = this;
-				// spawn the projectile at the muzzle
-				World->SpawnActor<ANGDTestProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
-			}
+			//Set Spawn Collision Handling Override
+			FActorSpawnParameters ActorSpawnParams;
+			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
+			ActorSpawnParams.Instigator = this;
+			ActorSpawnParams.Owner = this;
+			// spawn the projectile at the muzzle
+			World->SpawnActor<ANGDTestProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
 		}
 	}
 
+}
+bool ANGDTestCharacter::Fire_Validate(FRotator Pitch)
+{
+	return true;
+}
+
+void ANGDTestCharacter::MulticastFire_Implementation(FRotator Pitch)
+{
 	// try and play the sound if specified
 	if (FireSound != NULL)
 	{
@@ -186,6 +201,12 @@ void ANGDTestCharacter::OnFire()
 			AnimInstance->Montage_Play(FireAnimation, 1.f);
 		}
 	}
+}
+
+void ANGDTestCharacter::OnFire()
+{
+	//The server will be handling the spawning of the projectile and multicasting the sound
+	Fire(FirstPersonCameraComponent->GetComponentRotation());
 }
 
 void ANGDTestCharacter::OnResetVR()
@@ -284,6 +305,12 @@ void ANGDTestCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+	
+}
+
+void ANGDTestCharacter::MulticastWeaponPitch_Implementation(FRotator Pitch)
+{
+	//PivotComponent->SetRelativeRotation(0, Pitch.Yaw, 0);
 }
 
 bool ANGDTestCharacter::EnableTouchscreenMovement(class UInputComponent* PlayerInputComponent)
