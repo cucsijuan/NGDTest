@@ -3,24 +3,46 @@
 #include "NGDTestGameStateBase.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
+#include "Net/UnrealNetwork.h"
+#include "ConstructorHelpers.h"
 #include "NGDTestPlayerState.h"
+#include "NGDTestHUD.h"
+#include "NGDTestUserWidget.h"
 #include "MagicCube.h"
-
+ANGDTestGameStateBase::ANGDTestGameStateBase()
+{
+	PrimaryActorTick.bCanEverTick = true;
+}
 
 void ANGDTestGameStateBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SetSpawner();
-	if (Spawner != NULL) SpawnCube();
+	if (HasAuthority())
+	{
+		SetSpawner();
+		if (Spawner != NULL) SpawnCube();
+	}
+	
 
 }
 void ANGDTestGameStateBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (!IsGameOver) EndGame();
+}
+
+void ANGDTestGameStateBase::EndGame()
+{
 	for (auto& Player : PlayerArray)
 	{
-		if (Cast<ANGDTestPlayerState>(Player)->GetExplodedCubes() >= MAX_CUBES);
+		UE_LOG(LogTemp, Warning, TEXT("Player: %d Score: %d"), Player->PlayerId, Cast<ANGDTestPlayerState>(Player)->GetExplodedCubes());
+		if (Cast<ANGDTestPlayerState>(Player)->GetExplodedCubes() >= MAX_CUBES && GameOverWidget != NULL)
+		{
+			IsGameOver = true;
+			GameOverWidget->AddToViewport();
+			GameOverWidget->GameOver();
+		}
 	}
 }
 
@@ -45,13 +67,13 @@ void ANGDTestGameStateBase::SpawnCube()
 		for (auto& Step : PyramidSteps)
 		{
 			AMagicCube * Cube = World->SpawnActor<AMagicCube>(MagicCubeClass, Spawner->GetActorLocation() + FVector(0, 0, Height), Spawner->GetActorRotation(), ActorSpawnParams);
-			Cube->AssignCubeColor(FMath::RandRange(0, 2));
+			Cube->AssignCubeColor(FMath::RandRange(1, 3));
 			
 			int Size = 150;
 			for (int i = 0; i < Step; i++)
 			{
 				AMagicCube * Cube = World->SpawnActor<AMagicCube>(MagicCubeClass, Spawner->GetActorLocation() + FVector(0, Size, Height), Spawner->GetActorRotation(), ActorSpawnParams);
-				Cube->AssignCubeColor(FMath::RandRange(0, 2));
+				Cube->AssignCubeColor(FMath::RandRange(1, 3));
 				Size += 150;
 			}
 
@@ -59,7 +81,7 @@ void ANGDTestGameStateBase::SpawnCube()
 			for (int i = 0; i < Step; i++)
 			{
 				AMagicCube * Cube = World->SpawnActor<AMagicCube>(MagicCubeClass, Spawner->GetActorLocation() + FVector(0, Size, Height), Spawner->GetActorRotation(), ActorSpawnParams);
-				Cube->AssignCubeColor(FMath::RandRange(0, 2));
+				Cube->AssignCubeColor(FMath::RandRange(1, 3));
 				Size -= 150;
 			}
 			Height += 150;

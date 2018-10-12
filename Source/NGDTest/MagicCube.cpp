@@ -12,7 +12,10 @@
 
 AMagicCube::AMagicCube()
 {
+	bReplicates = true;
+	bReplicateMovement = true;
 	PrimaryActorTick.bCanEverTick = true;
+
 	SetMobility(EComponentMobility::Movable);
 
 	//Setup Mesh Component
@@ -112,7 +115,12 @@ void AMagicCube::AssignCubeColor(int ColorNum)
 	
 }
 
-void AMagicCube::Explode(APlayerState * InstigatorState,int ChainPosition, TArray<AMagicCube *> ExplodedCubes)
+void AMagicCube::OnRep_DynMaterial()
+{
+	AssignCubeColor(CurrentColorName);
+}
+
+void AMagicCube::Explode_Implementation(APlayerState * InstigatorState,int ChainPosition, const  TArray<AMagicCube *>& ExplodedCubes)
 {
 	if (Exploding) return;
 
@@ -140,6 +148,10 @@ void AMagicCube::Explode(APlayerState * InstigatorState,int ChainPosition, TArra
 	}
 
 	Destroy();
+}
+
+bool AMagicCube::Explode_Validate(APlayerState * InstigatorState, int ChainPosition, const  TArray<AMagicCube *>& ExplodedCubes) {
+	return true;
 }
 
 TArray<AMagicCube *> AMagicCube::FindNearbyCubes()
@@ -206,29 +218,21 @@ bool AMagicCube::IsSameColor(AMagicCube * other) const
 	return (other->GetColorName() == GetColorName());
 }
 
-FString AMagicCube::GetColorName() const
+int AMagicCube::GetColorName() const
 {
 	return CurrentColorName;
 }
 
 void AMagicCube::SetColorName(int ColorID)
 {
-	switch (ColorID)
-	{
-	case 0:
-		CurrentColorName = FString(TEXT("Red"));
-		break;
-	case 1:
-		CurrentColorName = FString(TEXT("Blue"));
-		break;
-	case 2:
-		CurrentColorName = FString(TEXT("Green"));
-		break;
-	default:
-		break;
-	}
-
+		CurrentColorName = ColorID;
 }
+
+void AMagicCube::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AMagicCube, CurrentColorName);
+}
 
 
 

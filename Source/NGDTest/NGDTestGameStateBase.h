@@ -9,25 +9,39 @@
 /**
  * 
  */
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FDestroyDelegate);
+
 UCLASS()
 class NGDTEST_API ANGDTestGameStateBase : public AGameStateBase
 {
 	GENERATED_BODY()
-private:
-	UPROPERTY()
-	TArray<int> PyramidSteps = { 3,3,2,2,1,1,0 };
+
 public:
-	UPROPERTY()
-	static const int MAX_CUBES = 28;
+	const int MAX_CUBES = 28;
+
 	UPROPERTY()
 	TSubclassOf<class AMagicCube> MagicCubeClass;
 	UPROPERTY()
 	AActor * Spawner;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	class UNGDTestUserWidget * GameOverWidget;
+	UPROPERTY(BlueprintAssignable, Category = "Test")
+	FDestroyDelegate DestroyDelegate;
+	
+	ANGDTestGameStateBase();
 
 	void SetSpawner();
 	void SpawnCube();
 
+private:
+	UPROPERTY()
+	TArray<int> PyramidSteps = { 3,3,2,2,1,1,0 };
+	UPROPERTY()
+	bool IsGameOver = false;
+
 protected:
 	virtual void BeginPlay() override;	
 	virtual void Tick(float DeltaTime) override;
+	void EndGame();
 };

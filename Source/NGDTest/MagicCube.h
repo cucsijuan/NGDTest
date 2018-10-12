@@ -13,7 +13,19 @@ UCLASS()
 class NGDTEST_API AMagicCube : public AStaticMeshActor
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Config")
+	float Speed = 250.f;
 	
+	AMagicCube();
+	UFUNCTION(NetMulticast,Reliable, WithValidation)
+	void Explode(class APlayerState * InstigatorState, int ChainPosition = 0, const TArray<AMagicCube *>& ExplodedCubes = {});
+	void AssignCubeColor(int ColorNum);
+	int GetColorName() const;
+	void SetColorName(int ColorID);
+	bool IsSameColor(AMagicCube * other) const;
+
 private:
 	UPROPERTY()
 	UStaticMeshComponent* MeshComponent;
@@ -22,34 +34,21 @@ private:
 	UPROPERTY()
 	class UMaterialInstanceDynamic * DynMaterial;
 	UPROPERTY()
-	TArray <FColor> Colors = { FColor::Red,FColor::Blue,FColor::Green};
-	UPROPERTY()
-	FString CurrentColorName;
+	TArray <FColor> Colors = { FColor::Black, FColor::Red,FColor::Blue,FColor::Green};
+	UPROPERTY(ReplicatedUsing = OnRep_DynMaterial)
+	int CurrentColorName;
 	UPROPERTY()
 	bool Exploding = false;
 	UPROPERTY()
 	bool Falling = false;
 	UPROPERTY()
 	FVector NewLocation;
+
+	UFUNCTION()
+	void OnRep_DynMaterial();
 	
 	TArray<AMagicCube *> FindNearbyCubes();
 	bool ShouldFall();
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Config")
-	float Speed = 250.f;
-	
-	AMagicCube();
-	UFUNCTION()
-	void Explode(class APlayerState * InstigatorState, int ChainPosition = 0, TArray<AMagicCube *> ExplodedCubes = {});
-	UFUNCTION()
-	FString GetColorName() const;
-	UFUNCTION()
-	void SetColorName(int ColorID);
-	UFUNCTION()
-	bool IsSameColor(AMagicCube * other) const;
-	UFUNCTION()
-	void AssignCubeColor(int ColorNum);
 
 protected:
 	virtual void BeginPlay() override;

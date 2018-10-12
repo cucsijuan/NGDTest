@@ -3,6 +3,7 @@
 #include "NGDTestProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "MagicCube.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
@@ -34,14 +35,20 @@ ANGDTestProjectile::ANGDTestProjectile()
 	InitialLifeSpan = 3.0f;
 }
 
-void ANGDTestProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void ANGDTestProjectile::OnHit_Implementation(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	//If we are colliding with a MagicCube then begin cube's destroying process
 	if ((OtherActor != NULL) && (OtherActor != this) && (OtherComp != NULL) && (OtherActor->IsA(AMagicCube::StaticClass())))
 	{
-	UE_LOG(LogTemp, Warning, TEXT("Collided: %s"),*OtherActor->StaticClass()->GetFName().ToString());
-		
-		Cast<AMagicCube>(OtherActor)->Explode(Cast<APlayerController>(GetInstigator()->GetController())->PlayerState,1);
+		if (HitComp->GetOwnerRole() < ROLE_Authority)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Collided: %s"), *OtherActor->StaticClass()->GetFName().ToString());
+			Cast<AMagicCube>(OtherActor)->Explode(Cast<APlayerController>(GetInstigator()->GetController())->PlayerState, 1);
+		}
+		else 
+		{
+			Cast<APlayerController>(GetInstigator()->GetController());
+		}
 		Destroy();
 	}
 }

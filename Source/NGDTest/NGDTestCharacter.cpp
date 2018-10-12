@@ -163,6 +163,7 @@ void ANGDTestCharacter::OnFire()
 				FActorSpawnParameters ActorSpawnParams;
 				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 				ActorSpawnParams.Instigator = this;
+				ActorSpawnParams.Owner = this;
 				// spawn the projectile at the muzzle
 				World->SpawnActor<ANGDTestProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
 			}
