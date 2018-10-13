@@ -52,3 +52,8 @@ void ANGDTestProjectile::OnHit_Implementation(UPrimitiveComponent* HitComp, AAct
 		Destroy();
 	}
 }
+
+bool ANGDTestProjectile::OnHit_Validate(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	return true;
+}

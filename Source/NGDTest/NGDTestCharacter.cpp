@@ -153,9 +153,9 @@ void ANGDTestCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ANGDTestCharacter::LookUpAtRate);
 }
 
-void ANGDTestCharacter::Fire_Implementation(FRotator Pitch)
+void ANGDTestCharacter::Fire_Implementation()
 {
-	MulticastFire(Pitch);
+	MulticastFire();
 
 	// try and fire a projectile
 	if (ProjectileClass != NULL)
@@ -165,7 +165,7 @@ void ANGDTestCharacter::Fire_Implementation(FRotator Pitch)
 		{
 			const FRotator SpawnRotation = GetControlRotation();
 			// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
-			const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + Pitch.RotateVector(GunOffset);
+			const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + WeaponPitch.RotateVector(GunOffset);
 
 			//Set Spawn Collision Handling Override
 			FActorSpawnParameters ActorSpawnParams;
@@ -178,12 +178,12 @@ void ANGDTestCharacter::Fire_Implementation(FRotator Pitch)
 	}
 
 }
-bool ANGDTestCharacter::Fire_Validate(FRotator Pitch)
+bool ANGDTestCharacter::Fire_Validate()
 {
 	return true;
 }
 
-void ANGDTestCharacter::MulticastFire_Implementation(FRotator Pitch)
+void ANGDTestCharacter::MulticastFire_Implementation()
 {
 	// try and play the sound if specified
 	if (FireSound != NULL)
@@ -206,7 +206,7 @@ void ANGDTestCharacter::MulticastFire_Implementation(FRotator Pitch)
 void ANGDTestCharacter::OnFire()
 {
 	//The server will be handling the spawning of the projectile and multicasting the sound
-	Fire(FirstPersonCameraComponent->GetComponentRotation());
+	Fire();
 }
 
 void ANGDTestCharacter::OnResetVR()
@@ -305,12 +305,26 @@ void ANGDTestCharacter::LookUpAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+	SetWeaponPitch(FirstPersonCameraComponent->GetComponentRotation());
 	
+}
+
+void ANGDTestCharacter::SetWeaponPitch_Implementation(FRotator Pitch)
+{
+	WeaponPitch = Pitch;
+	//Cast the client pitch to ohter clients
+	MulticastWeaponPitch(WeaponPitch);
+}
+
+bool ANGDTestCharacter::SetWeaponPitch_Validate(FRotator Pitch)
+{
+	return true;
 }
 
 void ANGDTestCharacter::MulticastWeaponPitch_Implementation(FRotator Pitch)
 {
-	//PivotComponent->SetRelativeRotation(0, Pitch.Yaw, 0);
+	FRotator TmpRotator = FRotator(Pitch.Pitch, 0, 0);
+	PivotComponent->SetRelativeRotation(TmpRotator);
 }
 
 bool ANGDTestCharacter::EnableTouchscreenMovement(class UInputComponent* PlayerInputComponent)

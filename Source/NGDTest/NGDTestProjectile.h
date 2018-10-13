@@ -23,7 +23,7 @@ public:
 	ANGDTestProjectile();
 
 	/** called when projectile hits something */
-	UFUNCTION(Client,Reliable)
+	UFUNCTION(Server,Reliable, WithValidation)
 	void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	/** Returns CollisionComp subobject **/

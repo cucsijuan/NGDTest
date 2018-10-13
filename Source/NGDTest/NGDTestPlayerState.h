@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerState.h"
 #include "NGDTestPlayerState.generated.h"
 
+
 /**
  * 
  */
@@ -15,12 +16,27 @@ class NGDTEST_API ANGDTestPlayerState : public APlayerState
 	GENERATED_BODY()
 
 public:
+		
+	ANGDTestPlayerState();
+
 	void DoScore(int ChainPosition);
+
+	void GameOver();
+
+	/*  Add a Cube to ExplodedCubes property */
 	void AddExplodedCube();
-	int GetExplodedCubes();
+
+	/*Returns the ExplodedCubes property and resets it*/
+	int PopExplodedCubes();
+
 private:
+	/* Stores the exploded cubes until GameState gets them */
 	UPROPERTY()
-	int ExplodedCubes;
+	int ExplodedCubes=0;
+
+	/* Gets Fibonacci based on a formula */
 	int ChainPositionToFibonacci(int ChainPosition);
+
+	/* Gets Fibonacci based on a loop */
 	int ChainPositionToFibonacciRec(int ChainPosition);
 };

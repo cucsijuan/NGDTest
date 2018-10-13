@@ -232,7 +232,8 @@ void AMagicCube::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AMagicCube, CurrentColorName);
-}
+}
+
 
 
 

@@ -2,14 +2,27 @@
 
 #include "NGDTestPlayerController.h"
 #include "Engine/World.h"
+#include "ConstructorHelpers.h"
 #include "NGDTestGameStateBase.h"
+#include "NGDTestUserWidget.h"
 
-void ANGDTestPlayerController::Server_ExplodeCube_Implementation(AMagicCube * CubeToExplode)
+ANGDTestPlayerController::ANGDTestPlayerController()
 {
-	//https://forums.unrealengine.com/development-discussion/c-gameplay-programming/32533-c-event-dispatchers-how-do-we-implement-them
-	//hay que poner el dynamic en el game estate y luego llamarlo desde aca
+	static ConstructorHelpers::FObjectFinder<UClass>ScoreWidgetFinder(TEXT("WidgetBlueprint'/Game/FirstPersonCPP/Blueprints/BP_ScoreWidget.BP_ScoreWidget_C'"));
+	if (ScoreWidgetFinder.Succeeded())
+	AssetScoreWidget = ScoreWidgetFinder.Object;
+	
 }
-bool ANGDTestPlayerController::Server_ExplodeCube_Validate(AMagicCube * CubeToExplode)
+
+
+
+void ANGDTestPlayerController::BeginPlay()
 {
-	return true;
+	if (IsLocalPlayerController())
+	{
+		if (AssetScoreWidget)
+			ScoreWidget = CreateWidget<UUserWidget>(this, AssetScoreWidget);
+	
+		if (ScoreWidget) ScoreWidget->AddToViewport();
+	}
 }

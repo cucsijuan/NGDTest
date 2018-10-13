@@ -3,21 +3,40 @@
 #include "NGDTestGameStateBase.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
-#include "Net/UnrealNetwork.h"
 #include "ConstructorHelpers.h"
 #include "NGDTestPlayerState.h"
-#include "NGDTestHUD.h"
 #include "NGDTestUserWidget.h"
+#include "NGDTestPlayerController.h"
 #include "MagicCube.h"
+
+
+TMap<int32,int32> ANGDTestGameStateBase::GetScoreSortedPlayers()
+{
+	TMap<int32, int32> TempMap;
+	int32 i=1;
+	for (auto& Player : PlayerArray)
+	{
+		TempMap.Add(i, Player->Score);
+		i++;
+	}
+
+	TempMap.ValueSort([](int32 A, int32 B) {
+		return A > B; 
+	});
+
+	return TempMap;
+}
+
 ANGDTestGameStateBase::ANGDTestGameStateBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
 }
 
 void ANGDTestGameStateBase::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	if (HasAuthority())
 	{
 		SetSpawner();
@@ -29,17 +48,25 @@ void ANGDTestGameStateBase::BeginPlay()
 void ANGDTestGameStateBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	GetCurrentExplodedCubes();
 	if (!IsGameOver) EndGame();
+}
+
+void ANGDTestGameStateBase::GetCurrentExplodedCubes()
+{
+	for (auto& Player : PlayerArray)
+	{
+		CurrentCubes += Cast<ANGDTestPlayerState>(Player)->PopExplodedCubes();
+	}
 }
 
 void ANGDTestGameStateBase::EndGame()
 {
-	for (auto& Player : PlayerArray)
+	if (CurrentCubes >= MAX_CUBES)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Player: %d Score: %d"), Player->PlayerId, Cast<ANGDTestPlayerState>(Player)->GetExplodedCubes());
-		if (Cast<ANGDTestPlayerState>(Player)->GetExplodedCubes() >= MAX_CUBES && GameOverWidget != NULL)
+		IsGameOver = true;
+		if (GameOverWidget)
 		{
-			IsGameOver = true;
 			GameOverWidget->AddToViewport();
 			GameOverWidget->GameOver();
 		}

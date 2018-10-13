@@ -92,11 +92,15 @@ public:
 protected:
 	/** Server Spawns a client projectile **/
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Fire(FRotator Pitch);
+	void Fire();
 
 	/** Sends Fire sound and anim to all clients **/
 	UFUNCTION(NetMulticast, Reliable)
-	void MulticastFire(FRotator Pitch);
+	void MulticastFire();
+	
+	/** Server Spawns a client projectile **/
+	UFUNCTION(Server, Reliable, WithValidation)
+	void SetWeaponPitch(FRotator Pitch);
 
 	/** Sends Weapon pitch to all clients **/
 	UFUNCTION(NetMulticast, Reliable)

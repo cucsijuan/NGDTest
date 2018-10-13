@@ -14,8 +14,17 @@ class NGDTEST_API ANGDTestPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
-	UFUNCTION(Server, unreliable, WithValidation)
-	void Server_ExplodeCube(class AMagicCube * CubeToExplode);
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
+	TSubclassOf<class UUserWidget> AssetScoreWidget;
+
+	class UUserWidget * ScoreWidget;
+
+	ANGDTestPlayerController();
+	
+
+protected:
+	virtual void BeginPlay() override;
 	
 	
 };

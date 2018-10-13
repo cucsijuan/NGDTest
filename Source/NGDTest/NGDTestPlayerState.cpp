@@ -1,11 +1,22 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "NGDTestPlayerState.h"
+#include "ConstructorHelpers.h"
+#include "NGDTestUserWidget.h"
 
-void ANGDTestPlayerState::DoScore(int ChainPosition) 
+ANGDTestPlayerState::ANGDTestPlayerState()
+{
+}
+
+void ANGDTestPlayerState::DoScore(int ChainPosition)
 {
 	Score += ChainPositionToFibonacciRec(ChainPosition);
 	AddExplodedCube();
+}
+
+void ANGDTestPlayerState::GameOver()
+{
+	GetOwner()->GetNetOwningPlayer()->GetPlayerController(GetWorld())->UnPossess();
 }
 
 int ANGDTestPlayerState::ChainPositionToFibonacci(int ChainPosition)
@@ -29,11 +40,15 @@ int ANGDTestPlayerState::ChainPositionToFibonacciRec(int ChainPosition)
 void ANGDTestPlayerState::AddExplodedCube()
 {
 	ExplodedCubes++;
+	
 }
 
-int ANGDTestPlayerState::GetExplodedCubes()
+int ANGDTestPlayerState::PopExplodedCubes()
 {
-	return ExplodedCubes;
+	int temp = ExplodedCubes;
+	ExplodedCubes = 0;
+	return temp;
 }
+
 
 
