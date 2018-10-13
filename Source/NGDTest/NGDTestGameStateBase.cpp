@@ -35,6 +35,7 @@ ANGDTestGameStateBase::ANGDTestGameStateBase()
 
 void ANGDTestGameStateBase::BeginPlay()
 {
+	
 	Super::BeginPlay();
 	
 	if (HasAuthority())

@@ -13,7 +13,6 @@
 AMagicCube::AMagicCube()
 {
 	bReplicates = true;
-	bReplicateMovement = true;
 	PrimaryActorTick.bCanEverTick = true;
 
 	SetMobility(EComponentMobility::Movable);
