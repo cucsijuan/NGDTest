@@ -71,12 +71,7 @@ private:
 	FVector NewLocation;
 
 	/* Find neighbour cubes and checks if they are the same color of this cube */
-	UPROPERTY()
 	TArray<AMagicCube *> FindNearbyCubes();
-
-	/* used to check if the cube has to start falling */
-	UPROPERTY()
-	bool ShouldFall();
 
 	/* Replicates DynMaterial property*/
 	UFUNCTION()
@@ -84,6 +79,9 @@ private:
 	
 	/* Handles the cube falling */
 	void DoFalling(float DeltaTime);
+
+	/* used to check if the cube has to start falling */
+	bool ShouldFall();
 
 protected:
 	virtual void BeginPlay() override;
