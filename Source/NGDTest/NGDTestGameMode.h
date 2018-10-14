@@ -29,6 +29,27 @@ public:
 	int ChainPositionToFibonacciRec(int ChainPosition);
 
 	bool EndGame(int32 CurrentCubes);
+protected:
+	virtual void BeginPlay() override;
+private:
+	/* Used to spawn cubes */
+	UPROPERTY()
+	TSubclassOf<class AMagicCube> MagicCubeClass;
+
+	/* Spawner reference */
+	UPROPERTY()
+	AActor * Spawner;
+
+	/* Array of Cubes that has to be spawned To the right and left of the spawned center Cube
+	in everi step of the pyramid */
+	UPROPERTY()
+	TArray<int32> PyramidSteps = { 3,3,2,2,1,1,0 };
+
+	/* Finds the spawner asset and stores a reference  */
+	void SetSpawner();
+
+	/* Spawn and paints the cube Pyramid  */
+	void SpawnCube();
 };
 
 

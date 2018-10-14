@@ -11,8 +11,6 @@
 #include "MagicCube.h"
 
 
-
-
 ANGDTestGameStateBase::ANGDTestGameStateBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -21,16 +19,7 @@ ANGDTestGameStateBase::ANGDTestGameStateBase()
 
 void ANGDTestGameStateBase::BeginPlay()
 {
-	
 	Super::BeginPlay();
-	
-	if (HasAuthority())
-	{
-		SetSpawner();
-		if (Spawner != NULL) SpawnCube();
-	}
-	
-
 }
 void ANGDTestGameStateBase::Tick(float DeltaTime)
 {
@@ -64,57 +53,6 @@ TMap<int32, int32> ANGDTestGameStateBase::GetScoreSortedPlayers()
 	});
 
 	return TempMap;
-}
-
-void ANGDTestGameStateBase::SetSpawner()
-{
-	TArray<AActor *> SpawnerArray;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName(TEXT("Spawner")), SpawnerArray);
-
-	if (SpawnerArray.Num() != 0) Spawner = SpawnerArray[0];
-}
-
-void ANGDTestGameStateBase::SpawnCube()
-{
-	UWorld* const World = GetWorld();
-	MagicCubeClass = AMagicCube::StaticClass();
-	
-	TArray<int32> Colorlist = { 1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3 };
-	
-	Colorlist.Sort([this](const int32 Item1, const int32 Item2) {
-		return FMath::FRand() < 0.5f;
-	});
-	
-	if (World != NULL && MagicCubeClass != NULL)
-	{
-		FActorSpawnParameters ActorSpawnParams;
-		int Height = 0;
-		// spawn cubes
-		for (auto& Step : PyramidSteps)
-		{
-
-			AMagicCube * Cube = World->SpawnActor<AMagicCube>(MagicCubeClass, Spawner->GetActorLocation() + FVector(0, 0, Height), Spawner->GetActorRotation(), ActorSpawnParams);
-			Cube->AssignCubeColor(FMath::RandRange(1,3));
-			
-			int Size = 150;
-			for (int32 i = 0; i < Step; i++)
-			{
-				AMagicCube * Cube = World->SpawnActor<AMagicCube>(MagicCubeClass, Spawner->GetActorLocation() + FVector(0, Size, Height), Spawner->GetActorRotation(), ActorSpawnParams);
-				Cube->AssignCubeColor(Colorlist.Pop());
-				Size += 150;
-			}
-
-			Size = -150;
-			for (int32 i = 0; i < Step; i++)
-			{
-				AMagicCube * Cube = World->SpawnActor<AMagicCube>(MagicCubeClass, Spawner->GetActorLocation() + FVector(0, Size, Height), Spawner->GetActorRotation(), ActorSpawnParams);
-				Cube->AssignCubeColor(Colorlist.Pop());
-				Size -= 150;
-			}
-			Height += 150;
-		}
-	}
-	
 }
 
 void ANGDTestGameStateBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {

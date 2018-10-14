@@ -103,7 +103,7 @@ bool AMagicCube::ShouldFall()
 	}
 }
 
-void AMagicCube::AssignCubeColor(int ColorNum)
+void AMagicCube::AssignCubeColor(int32 ColorNum)
 {
 	DynMaterial = UMaterialInstanceDynamic::Create(Material, this);
 	DynMaterial->SetVectorParameterValue("DiffuseColor", Colors[ColorNum]);
@@ -120,7 +120,7 @@ void AMagicCube::OnRep_DynMaterial()
 	AssignCubeColor(CurrentColorName);
 }
 
-void AMagicCube::Explode(APlayerState * InstigatorState,int ChainPosition, const  TArray<AMagicCube *>& ExplodedCubes)
+void AMagicCube::Explode(APlayerState * InstigatorState,int32 ChainPosition, const  TArray<AMagicCube *>& ExplodedCubes)
 {
 	if (Exploding) return;
 
@@ -220,7 +220,7 @@ int AMagicCube::GetColorName() const
 	return CurrentColorName;
 }
 
-void AMagicCube::SetColorName(int ColorID)
+void AMagicCube::SetColorName(int32 ColorID)
 {
 		CurrentColorName = ColorID;
 }

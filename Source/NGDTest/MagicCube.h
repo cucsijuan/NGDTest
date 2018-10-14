@@ -14,25 +14,24 @@ class NGDTEST_API AMagicCube : public AStaticMeshActor
 {
 	GENERATED_BODY()
 
-public:
+public:	
+	AMagicCube();
 	// Cube Falling Speed
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Config")
 	float Speed = 250.f;
-	
-	AMagicCube();
 
 	/* Look for matching cubes to explode, add score to player and destroy itself */
 	//UFUNCTION(NetMulticast,Reliable, WithValidation)
-	void Explode(class APlayerState * InstigatorState, int ChainPosition = 0, const TArray<AMagicCube *>& ExplodedCubes = {});
+	void Explode(class APlayerState * InstigatorState, int32 ChainPosition = 1, const TArray<AMagicCube *>& ExplodedCubes = {});
 	
 	/* sets color of the cube ColorNum must be a valid index of TArray <FColor> Colors  */
-	void AssignCubeColor(int ColorNum);
+	void AssignCubeColor(int32 ColorNum);
 	
 	/* Returns Color Index */
 	int GetColorName() const;
 	
 	/* Sets Color Index */
-	void SetColorName(int ColorID);
+	void SetColorName(int32 ColorID);
 	
 	/* Checks if other cube has the same color of this one */
 	bool IsSameColor(AMagicCube * other) const;
@@ -56,7 +55,7 @@ private:
 
 	/* The curren color index of the cube */
 	UPROPERTY(ReplicatedUsing = OnRep_DynMaterial)
-	int CurrentColorName;
+	int32 CurrentColorName;
 
 	/* used to check if the cube can explode or its already exploding */
 	UPROPERTY()
@@ -86,6 +85,8 @@ private:
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+
+
 	
 	
 };

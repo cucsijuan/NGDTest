@@ -8,19 +8,19 @@ ANGDTestPlayerState::ANGDTestPlayerState()
 {
 }
 
-void ANGDTestPlayerState::DoScore_Implementation(int SetScore)
+void ANGDTestPlayerState::DoScore_Implementation(int32 SetScore)
 {
 	Score += SetScore;
 	AddExplodedCube();
 	MulticastScore(Score);
 }
 
-bool ANGDTestPlayerState::DoScore_Validate(int Score)
+bool ANGDTestPlayerState::DoScore_Validate(int32 Score)
 {
 	return true;
 }
 
-void ANGDTestPlayerState::MulticastScore_Implementation(int SetScore)
+void ANGDTestPlayerState::MulticastScore_Implementation(int32 SetScore)
 {
 	Score = SetScore;
 }
