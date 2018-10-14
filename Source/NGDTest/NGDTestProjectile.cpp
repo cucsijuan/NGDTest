@@ -4,9 +4,12 @@
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Components/SphereComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "MagicCube.h"
+#include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
+#include "MagicCube.h"
+#include "NGDTestGameMode.h"
+
 
 ANGDTestProjectile::ANGDTestProjectile() 
 {
@@ -32,7 +35,7 @@ ANGDTestProjectile::ANGDTestProjectile()
 	ProjectileMovement->bShouldBounce = true;
 
 	// Die after 3 seconds by default
-	InitialLifeSpan = 3.0f;
+	InitialLifeSpan = 2.0f;
 }
 
 void ANGDTestProjectile::OnHit_Implementation(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
@@ -40,17 +43,14 @@ void ANGDTestProjectile::OnHit_Implementation(UPrimitiveComponent* HitComp, AAct
 	//If we are colliding with a MagicCube then begin cube's destroying process
 	if ((OtherActor != NULL) && (OtherActor != this) && (OtherComp != NULL) && (OtherActor->IsA(AMagicCube::StaticClass())))
 	{
-		if (HitComp->GetOwnerRole() == ROLE_Authority)
+		if (GetWorld()->GetAuthGameMode() != NULL)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Collided: %s"), *OtherActor->StaticClass()->GetFName().ToString());
-			Cast<AMagicCube>(OtherActor)->Explode(Cast<APlayerController>(GetInstigator()->GetController())->PlayerState, 1);
+			Cast<ANGDTestGameMode>(GetWorld()->GetAuthGameMode())->CubeFound(Cast<AMagicCube>(OtherActor), 
+				Cast<APlayerController>(GetInstigator()->GetController())->PlayerState);
 		}
-		else 
-		{
-			Cast<APlayerController>(GetInstigator()->GetController());
-		}
-		Destroy();
+		
 	}
+	Destroy();
 }
 
 bool ANGDTestProjectile::OnHit_Validate(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)

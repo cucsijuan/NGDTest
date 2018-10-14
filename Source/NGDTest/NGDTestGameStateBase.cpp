@@ -4,28 +4,14 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "ConstructorHelpers.h"
+#include "Net/UnrealNetwork.h"
 #include "NGDTestPlayerState.h"
-#include "NGDTestUserWidget.h"
+#include "NGDTestGameMode.h"
 #include "NGDTestPlayerController.h"
 #include "MagicCube.h"
 
 
-TMap<int32,int32> ANGDTestGameStateBase::GetScoreSortedPlayers()
-{
-	TMap<int32, int32> TempMap;
-	int32 i=1;
-	for (auto& Player : PlayerArray)
-	{
-		TempMap.Add(i, Player->Score);
-		i++;
-	}
 
-	TempMap.ValueSort([](int32 A, int32 B) {
-		return A > B; 
-	});
-
-	return TempMap;
-}
 
 ANGDTestGameStateBase::ANGDTestGameStateBase()
 {
@@ -50,7 +36,9 @@ void ANGDTestGameStateBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	GetCurrentExplodedCubes();
-	if (!IsGameOver) EndGame();
+	//Check if the game should be ending
+	if (GetWorld()->GetAuthGameMode() && !IsGameOver)
+		IsGameOver = Cast<ANGDTestGameMode>(GetWorld()->GetAuthGameMode())->EndGame(CurrentCubes);
 }
 
 void ANGDTestGameStateBase::GetCurrentExplodedCubes()
@@ -61,17 +49,21 @@ void ANGDTestGameStateBase::GetCurrentExplodedCubes()
 	}
 }
 
-void ANGDTestGameStateBase::EndGame()
+TMap<int32, int32> ANGDTestGameStateBase::GetScoreSortedPlayers()
 {
-	if (CurrentCubes >= MAX_CUBES)
+	TMap<int32, int32> TempMap;
+	int32 i = 1;
+	for (auto& Player : PlayerArray)
 	{
-		IsGameOver = true;
-		if (GameOverWidget)
-		{
-			GameOverWidget->AddToViewport();
-			GameOverWidget->GameOver();
-		}
+		TempMap.Add(i, Player->Score);
+		i++;
 	}
+
+	TempMap.ValueSort([](int32 A, int32 B) {
+		return A > B;
+	});
+
+	return TempMap;
 }
 
 void ANGDTestGameStateBase::SetSpawner()
@@ -86,7 +78,13 @@ void ANGDTestGameStateBase::SpawnCube()
 {
 	UWorld* const World = GetWorld();
 	MagicCubeClass = AMagicCube::StaticClass();
-
+	
+	TArray<int32> Colorlist = { 1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3 };
+	
+	Colorlist.Sort([this](const int32 Item1, const int32 Item2) {
+		return FMath::FRand() < 0.5f;
+	});
+	
 	if (World != NULL && MagicCubeClass != NULL)
 	{
 		FActorSpawnParameters ActorSpawnParams;
@@ -94,26 +92,34 @@ void ANGDTestGameStateBase::SpawnCube()
 		// spawn cubes
 		for (auto& Step : PyramidSteps)
 		{
+
 			AMagicCube * Cube = World->SpawnActor<AMagicCube>(MagicCubeClass, Spawner->GetActorLocation() + FVector(0, 0, Height), Spawner->GetActorRotation(), ActorSpawnParams);
-			Cube->AssignCubeColor(FMath::RandRange(1, 3));
+			Cube->AssignCubeColor(FMath::RandRange(1,3));
 			
 			int Size = 150;
-			for (int i = 0; i < Step; i++)
+			for (int32 i = 0; i < Step; i++)
 			{
 				AMagicCube * Cube = World->SpawnActor<AMagicCube>(MagicCubeClass, Spawner->GetActorLocation() + FVector(0, Size, Height), Spawner->GetActorRotation(), ActorSpawnParams);
-				Cube->AssignCubeColor(FMath::RandRange(1, 3));
+				Cube->AssignCubeColor(Colorlist.Pop());
 				Size += 150;
 			}
 
 			Size = -150;
-			for (int i = 0; i < Step; i++)
+			for (int32 i = 0; i < Step; i++)
 			{
 				AMagicCube * Cube = World->SpawnActor<AMagicCube>(MagicCubeClass, Spawner->GetActorLocation() + FVector(0, Size, Height), Spawner->GetActorRotation(), ActorSpawnParams);
-				Cube->AssignCubeColor(FMath::RandRange(1, 3));
+				Cube->AssignCubeColor(Colorlist.Pop());
 				Size -= 150;
 			}
 			Height += 150;
 		}
 	}
+	
+}
+
+void ANGDTestGameStateBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	// Here we list the variables we want to replicate + a condition if wanted
+	DOREPLIFETIME(ANGDTestGameStateBase, IsGameOver);
 }
 

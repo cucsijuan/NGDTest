@@ -89,6 +89,7 @@ public:
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	FRotator WeaponPitch;
 
+
 protected:
 	/** Server Spawns a client projectile **/
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -129,6 +130,8 @@ protected:
 	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
 	 */
 	void LookUpAtRate(float Rate);
+
+	void QuitGame();
 
 	struct TouchData
 	{

@@ -8,6 +8,7 @@
 #include "ConstructorHelpers.h"
 #include "Engine/World.h"
 #include "Net/UnrealNetwork.h"
+#include "NGDTestGameMode.h"
 #include "NGDTestPlayerState.h"
 
 AMagicCube::AMagicCube()
@@ -119,16 +120,12 @@ void AMagicCube::OnRep_DynMaterial()
 	AssignCubeColor(CurrentColorName);
 }
 
-void AMagicCube::Explode_Implementation(APlayerState * InstigatorState,int ChainPosition, const  TArray<AMagicCube *>& ExplodedCubes)
+void AMagicCube::Explode(APlayerState * InstigatorState,int ChainPosition, const  TArray<AMagicCube *>& ExplodedCubes)
 {
 	if (Exploding) return;
 
 	Exploding = true;
 	
-	//increase player Score
-	UE_LOG(LogTemp, Warning, TEXT("Chain: %d"), ChainPosition);
-	Cast<ANGDTestPlayerState>(InstigatorState)->DoScore(ChainPosition);
-
 	//Find and save cubes with the same color
 	TArray<AMagicCube *> FoundCubes = FindNearbyCubes();
 	
@@ -138,19 +135,20 @@ void AMagicCube::Explode_Implementation(APlayerState * InstigatorState,int Chain
 		if (!ExplodedCubes.Contains(Cube))
 		{
 			//Store the found cubes along with the ones who exploded
-			//so the next cube knows who already exploded or is set to explode
+			//so the next cube knows who already exploded or if its set to explode
 			TArray<AMagicCube *> TempCubes;
 			TempCubes.Append(ExplodedCubes);
 			TempCubes.Append(FoundCubes);
-			Cube->Explode(InstigatorState, ChainPosition + 1, TempCubes);
+			TempCubes.Add(this);
+
+			//Tell to the game mode that we want to destroy the found cube
+			if (GetWorld()->GetAuthGameMode())
+				Cast<ANGDTestGameMode>(GetWorld()->GetAuthGameMode())->CubeFound(Cube, 
+					InstigatorState, ChainPosition + 1, TempCubes);
 		}
 	}
-
-	Destroy();
-}
-
-bool AMagicCube::Explode_Validate(APlayerState * InstigatorState, int ChainPosition, const  TArray<AMagicCube *>& ExplodedCubes) {
-	return true;
+	if (GetWorld()->GetAuthGameMode())
+		Destroy();
 }
 
 TArray<AMagicCube *> AMagicCube::FindNearbyCubes()

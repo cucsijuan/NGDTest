@@ -127,6 +127,8 @@ void ANGDTestCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 {
 	// set up gameplay key bindings
 	check(PlayerInputComponent);
+	//Bind Quit Game Event
+	PlayerInputComponent->BindAction("QuitGame", IE_Pressed, this, &ANGDTestCharacter::QuitGame);
 
 	// Bind jump events
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
@@ -307,6 +309,11 @@ void ANGDTestCharacter::LookUpAtRate(float Rate)
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 	SetWeaponPitch(FirstPersonCameraComponent->GetComponentRotation());
 	
+}
+
+void ANGDTestCharacter::QuitGame()
+{
+	UKismetSystemLibrary::QuitGame(this,Cast<APlayerController>(GetInstigatorController()),EQuitPreference::Quit);
 }
 
 void ANGDTestCharacter::SetWeaponPitch_Implementation(FRotator Pitch)

@@ -22,7 +22,7 @@ public:
 	AMagicCube();
 
 	/* Look for matching cubes to explode, add score to player and destroy itself */
-	UFUNCTION(NetMulticast,Reliable, WithValidation)
+	//UFUNCTION(NetMulticast,Reliable, WithValidation)
 	void Explode(class APlayerState * InstigatorState, int ChainPosition = 0, const TArray<AMagicCube *>& ExplodedCubes = {});
 	
 	/* sets color of the cube ColorNum must be a valid index of TArray <FColor> Colors  */

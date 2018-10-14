@@ -8,39 +8,27 @@ ANGDTestPlayerState::ANGDTestPlayerState()
 {
 }
 
-void ANGDTestPlayerState::DoScore(int ChainPosition)
+void ANGDTestPlayerState::DoScore_Implementation(int SetScore)
 {
-	Score += ChainPositionToFibonacciRec(ChainPosition);
+	Score += SetScore;
 	AddExplodedCube();
+	MulticastScore(Score);
 }
 
-void ANGDTestPlayerState::GameOver()
+bool ANGDTestPlayerState::DoScore_Validate(int Score)
 {
-	GetOwner()->GetNetOwningPlayer()->GetPlayerController(GetWorld())->UnPossess();
+	return true;
 }
 
-int ANGDTestPlayerState::ChainPositionToFibonacci(int ChainPosition)
+void ANGDTestPlayerState::MulticastScore_Implementation(int SetScore)
 {
-	//We use Binet's Fibonacci Number Formula to get the value at a given index
-	return (FMath::Pow((1 + FMath::Sqrt(5)), ChainPosition) - FMath::Pow((1 - FMath::Sqrt(5)), ChainPosition)) /
-		(FMath::Pow(2, ChainPosition) * FMath::Sqrt(5));
-}
-
-int ANGDTestPlayerState::ChainPositionToFibonacciRec(int ChainPosition)
-{
-	int a = 1, b = 1;
-	for (int i = 3; i <= ChainPosition; i++) {
-		int c = a + b;
-		a = b;
-		b = c;
-	}
-	return b;
+	Score = SetScore;
 }
 
 void ANGDTestPlayerState::AddExplodedCube()
 {
 	ExplodedCubes++;
-	
+	UE_LOG(LogTemp, Warning, TEXT("Cubes: %d"), ExplodedCubes);
 }
 
 int ANGDTestPlayerState::PopExplodedCubes()
@@ -49,6 +37,7 @@ int ANGDTestPlayerState::PopExplodedCubes()
 	ExplodedCubes = 0;
 	return temp;
 }
+
 
 
 

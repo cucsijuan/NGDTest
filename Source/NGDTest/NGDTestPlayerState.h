@@ -16,12 +16,15 @@ class NGDTEST_API ANGDTestPlayerState : public APlayerState
 	GENERATED_BODY()
 
 public:
-		
+	
 	ANGDTestPlayerState();
+	/* Sets the player score serverside */
+	UFUNCTION(Server, Reliable, WithValidation)
+	void DoScore(int SetScore);
 
-	void DoScore(int ChainPosition);
-
-	void GameOver();
+	/* Casts the player score to clients */
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastScore(int SetScore);
 
 	/*  Add a Cube to ExplodedCubes property */
 	void AddExplodedCube();
@@ -34,9 +37,4 @@ private:
 	UPROPERTY()
 	int ExplodedCubes=0;
 
-	/* Gets Fibonacci based on a formula */
-	int ChainPositionToFibonacci(int ChainPosition);
-
-	/* Gets Fibonacci based on a loop */
-	int ChainPositionToFibonacciRec(int ChainPosition);
 };

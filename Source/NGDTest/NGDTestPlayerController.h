@@ -15,16 +15,12 @@ class NGDTEST_API ANGDTestPlayerController : public APlayerController
 	GENERATED_BODY()
 	
 public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Widgets")
-	TSubclassOf<class UUserWidget> AssetScoreWidget;
-
-	class UUserWidget * ScoreWidget;
-
 	ANGDTestPlayerController();
 	
 
+
 protected:
 	virtual void BeginPlay() override;
-	
+
 	
 };
