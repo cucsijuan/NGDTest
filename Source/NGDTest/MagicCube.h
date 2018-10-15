@@ -36,6 +36,12 @@ public:
 	/* Checks if other cube has the same color of this one */
 	bool IsSameColor(AMagicCube * other) const;
 
+	 /* Returns Exploding property*/
+	bool IsExploding();
+
+	/* Sets the Explode Property */
+	void SetExploding(bool status);
+
 private:
 	/* Cube's Mesh */
 	UPROPERTY()

@@ -4,7 +4,6 @@
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Math/Color.h"
 #include "Components/StaticMeshComponent.h"
-#include "DrawDebugHelpers.h"
 #include "ConstructorHelpers.h"
 #include "Engine/World.h"
 #include "Net/UnrealNetwork.h"
@@ -92,8 +91,6 @@ bool AMagicCube::ShouldFall()
 	FCollisionResponseParams  CollisionRespParams;
 	FHitResult OutHit;
 
-	DrawDebugLine(GetWorld(), Start - UpOffset, DownEnd, FColor::Purple, false, 1, 0, 5);
-
 	if (GetWorld()->LineTraceSingleByChannel(OutHit, Start - UpOffset, DownEnd, ECC_Visibility, CollisionParams, CollisionRespParams))
 	{
 		return false;
@@ -175,7 +172,6 @@ TArray<AMagicCube *> AMagicCube::FindNearbyCubes()
 
 	FHitResult OutHit;
 
-	DrawDebugLine(GetWorld(), Start + RightOffset, RightEnd, FColor::Red, false, 1, 0, 5);
 
 	if (GetWorld()->LineTraceSingleByChannel(OutHit, Start + RightOffset, RightEnd, ECC_Visibility, CollisionParams, CollisionRespParams) 
 		&& (OutHit.GetActor()->IsA(AMagicCube::StaticClass())))
@@ -183,7 +179,6 @@ TArray<AMagicCube *> AMagicCube::FindNearbyCubes()
 		if (IsSameColor(Cast<AMagicCube>(OutHit.GetActor()))) CubesToDestroy.Add(Cast<AMagicCube>(OutHit.GetActor()));
 	}
 
-	DrawDebugLine(GetWorld(), Start - RightOffset, LeftEnd, FColor::Green, false, 1, 0, 5);
 
 	if (GetWorld()->LineTraceSingleByChannel(OutHit, Start - RightOffset, LeftEnd, ECC_Visibility, CollisionParams, CollisionRespParams)
 		&& (OutHit.GetActor()->IsA(AMagicCube::StaticClass())))
@@ -191,7 +186,6 @@ TArray<AMagicCube *> AMagicCube::FindNearbyCubes()
 		if (IsSameColor(Cast<AMagicCube>(OutHit.GetActor()))) CubesToDestroy.Add(Cast<AMagicCube>(OutHit.GetActor()));
 	}
 
-	DrawDebugLine(GetWorld(), Start + UpOffset, UpEnd, FColor::Blue, false, 1, 0, 5);
 
 	if (GetWorld()->LineTraceSingleByChannel(OutHit, Start + UpOffset, UpEnd, ECC_Visibility, CollisionParams, CollisionRespParams) 
 		&& (OutHit.GetActor()->IsA(AMagicCube::StaticClass())))
@@ -199,7 +193,6 @@ TArray<AMagicCube *> AMagicCube::FindNearbyCubes()
 		if (IsSameColor(Cast<AMagicCube>(OutHit.GetActor()))) CubesToDestroy.Add(Cast<AMagicCube>(OutHit.GetActor()));
 	}
 
-	DrawDebugLine(GetWorld(), Start - UpOffset, DownEnd, FColor::Purple, false, 1, 0, 5);
 
 	if (GetWorld()->LineTraceSingleByChannel(OutHit, Start - UpOffset, DownEnd, ECC_Visibility, CollisionParams, CollisionRespParams)
 		&& (OutHit.GetActor()->IsA(AMagicCube::StaticClass())))
@@ -213,6 +206,16 @@ TArray<AMagicCube *> AMagicCube::FindNearbyCubes()
 bool AMagicCube::IsSameColor(AMagicCube * other) const
 {
 	return (other->GetColorName() == GetColorName());
+}
+
+bool AMagicCube::IsExploding()
+{
+	return Exploding;
+}
+
+void AMagicCube::SetExploding(bool status)
+{
+	Exploding = status;
 }
 
 int AMagicCube::GetColorName() const

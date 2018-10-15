@@ -13,51 +13,28 @@
 
 ANGDTestGameStateBase::ANGDTestGameStateBase()
 {
-	PrimaryActorTick.bCanEverTick = true;
-
 }
 
-void ANGDTestGameStateBase::BeginPlay()
+void ANGDTestGameStateBase::EndGame()
 {
-	Super::BeginPlay();
-}
-void ANGDTestGameStateBase::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-	GetCurrentExplodedCubes();
-	//Check if the game should be ending
-	if (GetWorld()->GetAuthGameMode() && !IsGameOver)
-		IsGameOver = Cast<ANGDTestGameMode>(GetWorld()->GetAuthGameMode())->EndGame(CurrentCubes);
+	if(HasAuthority())
+		IsGameEnded = true;
 }
 
-void ANGDTestGameStateBase::GetCurrentExplodedCubes()
+bool ANGDTestGameStateBase::IsGameOver() const
 {
-	for (auto& Player : PlayerArray)
-	{
-		CurrentCubes += Cast<ANGDTestPlayerState>(Player)->PopExplodedCubes();
-	}
+	return IsGameEnded;
 }
 
-TMap<int32, int32> ANGDTestGameStateBase::GetScoreSortedPlayers()
+void ANGDTestGameStateBase::MulticastSortedPlayers_Implementation(const TArray<class ANGDTestPlayerState *> & PlayersArray)
 {
-	TMap<int32, int32> TempMap;
-	int32 i = 1;
-	for (auto& Player : PlayerArray)
-	{
-		TempMap.Add(i, Player->Score);
-		i++;
-	}
-
-	TempMap.ValueSort([](int32 A, int32 B) {
-		return A > B;
-	});
-
-	return TempMap;
+	SortedPlayers = PlayersArray;
 }
 
 void ANGDTestGameStateBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	// Here we list the variables we want to replicate + a condition if wanted
-	DOREPLIFETIME(ANGDTestGameStateBase, IsGameOver);
+	DOREPLIFETIME(ANGDTestGameStateBase, IsGameEnded); 
+	
 }
+
 

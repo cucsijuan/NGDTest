@@ -15,5 +15,4 @@ ANGDTestPlayerController::ANGDTestPlayerController()
 
 void ANGDTestPlayerController::BeginPlay()
 {
-	
 }

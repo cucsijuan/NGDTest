@@ -9,6 +9,7 @@
 #include "Engine/World.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/World.h"
 #include "MagicCube.h"
 
 ANGDTestGameMode::ANGDTestGameMode()
@@ -31,18 +32,29 @@ void ANGDTestGameMode::BeginPlay()
 	if (Spawner != NULL) SpawnCube();
 }
 
+void ANGDTestGameMode::PostLogin(APlayerController * NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+	NewPlayer->PlayerState->SetPlayerName("Player " + FString::FromInt(PlayerNum));
+	PlayerNum++;
+}
+
 void ANGDTestGameMode::CubeFound(AMagicCube * Cube, APlayerState * Player)
 {
-	Cube->Explode(Player, 1);
+	//Cube->Explode(Player);
+	DestroyCube(Cube, Player);
 	Cast<ANGDTestPlayerState>(Player)->DoScore(ChainPositionToFibonacciRec(1));
-	UE_LOG(LogTemp, Warning, TEXT("ProjectileCall"));
+	CurrentCubes++;
+	ShouldGameEnd(CurrentCubes);
 }
 
 void ANGDTestGameMode::CubeFound(AMagicCube * Cube, APlayerState * Player, int ChainPosition, TArray<AMagicCube *> ExplodedArray)
 {
-	Cube->Explode(Player, ChainPosition, ExplodedArray);
+	//Cube->Explode(Player, ChainPosition, ExplodedArray);
+	DestroyCube(Cube, Player, ChainPosition, ExplodedArray);
 	Cast<ANGDTestPlayerState>(Player)->DoScore(ChainPositionToFibonacciRec(ChainPosition));
-	UE_LOG(LogTemp, Warning, TEXT("CubeCall"));
+	CurrentCubes++;
+	ShouldGameEnd(CurrentCubes);
 }
 
 int ANGDTestGameMode::ChainPositionToFibonacci(int ChainPosition)
@@ -63,13 +75,50 @@ int ANGDTestGameMode::ChainPositionToFibonacciRec(int ChainPosition)
 	return b;
 }
 
-bool ANGDTestGameMode::EndGame(int32 CurrentCubes)
+void ANGDTestGameMode::SortPlayerStatesByScore()
+{
+	ANGDTestGameStateBase * TempGameState = GetGameState<ANGDTestGameStateBase>();
+
+	for (auto& Player : TempGameState->PlayerArray)
+	{
+		TempGameState->SortedPlayers.Add(Cast<ANGDTestPlayerState>(Player));
+	};
+
+	SortBubble(TempGameState->SortedPlayers);
+	
+	TempGameState->MulticastSortedPlayers(TempGameState->SortedPlayers);
+
+}
+
+void ANGDTestGameMode::SortBubble(TArray<ANGDTestPlayerState *> & Array)
+{
+	int32 n = Array.Num();
+	bool swapped;
+	do
+	{
+		swapped = false;
+		for (int32 i = 1; i <= n-1; i++)
+		{
+			if (Array[i - 1]->PlayerScore < Array[i]->PlayerScore)
+			{
+				ANGDTestPlayerState * Temp = Array[i - 1];
+				Array[i - 1] = Array[i];
+				Array[i] = Temp;
+				swapped = true;
+			}
+		}
+		n = n - 1;
+	}while(swapped);
+}
+
+void ANGDTestGameMode::ShouldGameEnd(int32 CurrentCubes)
 {
 	if (CurrentCubes >= MAX_CUBES)
 	{
-		return true;
+		SortPlayerStatesByScore();
+		GetGameState<ANGDTestGameStateBase>()->EndGame();
 	}
-	return false;
+		
 }
 
 void ANGDTestGameMode::SetSpawner()
@@ -84,9 +133,11 @@ void ANGDTestGameMode::SpawnCube()
 {
 	UWorld* const World = GetWorld();
 	MagicCubeClass = AMagicCube::StaticClass();
-
+	
+	//an array with preloaded colors
 	TArray<int32> Colorlist = { 1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3 };
-
+	
+	//shuffles the color array
 	Colorlist.Sort([this](const int32 Item1, const int32 Item2) {
 		return FMath::FRand() < 0.5f;
 	});
@@ -121,4 +172,85 @@ void ANGDTestGameMode::SpawnCube()
 		}
 	}
 
+}
+
+void ANGDTestGameMode::DestroyCube(AMagicCube * CubeToDestroy, APlayerState * InstigatorState, int32 ChainPosition, const  TArray<AMagicCube *>& ExplodedCubes)
+{
+	if (CubeToDestroy->IsExploding()) return;
+
+	CubeToDestroy->SetExploding(true);
+
+	//Find and save cubes with the same color
+	TArray<AMagicCube *> FoundCubes = FindNearbyCubes(CubeToDestroy);
+
+	for (auto& Cube : FoundCubes)
+	{
+		//check if the cube already exploded
+		if (!ExplodedCubes.Contains(Cube))
+		{
+			//Store the found cubes along with the ones who exploded
+			//so the next cube knows who already exploded or if its set to explode
+			TArray<AMagicCube *> TempCubes;
+			TempCubes.Append(ExplodedCubes);
+			TempCubes.Append(FoundCubes);
+			TempCubes.Add(CubeToDestroy);
+
+			//Tell to the game mode that we want to destroy the found cube
+			
+			CubeFound(Cube,InstigatorState, ChainPosition + 1, TempCubes);
+		}
+	}
+	
+	CubeToDestroy->Destroy();
+}
+
+TArray<AMagicCube *> ANGDTestGameMode::FindNearbyCubes(AMagicCube * Cube)
+{
+	//we will store all the found cube in this array
+	TArray<AMagicCube *> CubesToDestroy;
+
+	//this offsets are used to draw the raytrace outside the owner to avoid self detection
+	FVector RightOffset = FVector(0.f, 40.f, 0.f);
+	FVector UpOffset = FVector(0.f, 0.f, 40.f);
+
+	//LineTrace vector setup
+	FVector Start = Cube->GetActorLocation();
+	FVector RightVector = Cube->GetActorRightVector();
+	FVector RightEnd = ((RightVector * 90.f) + Start);
+	FVector LeftVector = -Cube->GetActorRightVector();
+	FVector LeftEnd = ((LeftVector * 90.f) + Start);
+	FVector UpVector = Cube->GetActorUpVector();
+	FVector UpEnd = ((UpVector * 90.f) + Start);
+	FVector DownVector = -Cube->GetActorUpVector();
+	FVector DownEnd = ((DownVector * 90.f) + Start);
+	FCollisionQueryParams CollisionParams(FName(TEXT("")), false, Cube);
+	FCollisionResponseParams  CollisionRespParams;
+
+	FHitResult OutHit;
+	
+	if (GetWorld()->LineTraceSingleByChannel(OutHit, Start + RightOffset, RightEnd, ECC_Visibility, CollisionParams, CollisionRespParams)
+		&& (OutHit.GetActor()->IsA(AMagicCube::StaticClass())))
+	{
+		if (Cube->IsSameColor(Cast<AMagicCube>(OutHit.GetActor()))) CubesToDestroy.Add(Cast<AMagicCube>(OutHit.GetActor()));
+	}
+
+	if (GetWorld()->LineTraceSingleByChannel(OutHit, Start - RightOffset, LeftEnd, ECC_Visibility, CollisionParams, CollisionRespParams)
+		&& (OutHit.GetActor()->IsA(AMagicCube::StaticClass())))
+	{
+		if (Cube->IsSameColor(Cast<AMagicCube>(OutHit.GetActor()))) CubesToDestroy.Add(Cast<AMagicCube>(OutHit.GetActor()));
+	}
+
+	if (GetWorld()->LineTraceSingleByChannel(OutHit, Start + UpOffset, UpEnd, ECC_Visibility, CollisionParams, CollisionRespParams)
+		&& (OutHit.GetActor()->IsA(AMagicCube::StaticClass())))
+	{
+		if (Cube->IsSameColor(Cast<AMagicCube>(OutHit.GetActor()))) CubesToDestroy.Add(Cast<AMagicCube>(OutHit.GetActor()));
+	}
+
+	if (GetWorld()->LineTraceSingleByChannel(OutHit, Start - UpOffset, DownEnd, ECC_Visibility, CollisionParams, CollisionRespParams)
+		&& (OutHit.GetActor()->IsA(AMagicCube::StaticClass())))
+	{
+		if (Cube->IsSameColor(Cast<AMagicCube>(OutHit.GetActor()))) CubesToDestroy.Add(Cast<AMagicCube>(OutHit.GetActor()));
+	}
+
+	return CubesToDestroy;
 }
