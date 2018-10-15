@@ -22,31 +22,31 @@ public:
 	/* Called when a cube wants to destroy another cube */
 	void CubeFound(class AMagicCube * Cube, class APlayerState * Player, int ChainPosition, TArray<AMagicCube *> ExplodedArray);
 	
-	/* Gets Fibonacci number of a given index using a formula*/
-	int ChainPositionToFibonacci(int ChainPosition);
-	
 	/* Gets Fibonacci number of a given index using a loop*/
 	int ChainPositionToFibonacciRec(int ChainPosition);
 
+	/* Sort and multicasts the GameState's PlayerStatesByScore array */
 	void SortPlayerStatesByScore();
 
-	void SortBubble(TArray<class ANGDTestPlayerState *> & Array);
+	
 
 protected:
+	/* Used to spawn cubes */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Config")
+	TSubclassOf<class AMagicCube> MagicCubeClass;
+
 	virtual void BeginPlay() override;
+
 	virtual void PostLogin(APlayerController * NewPlayer) override;
 
 private:
+	/* used to set the Name of the players */
 	UPROPERTY()
 	int32 PlayerNum = 1;
 
 	/* Holds the total number of cubes destroyed in the current game */
 	UPROPERTY(Transient)
 	int32 CurrentCubes = 0;
-
-	/* Used to spawn cubes */
-	UPROPERTY()
-	TSubclassOf<class AMagicCube> MagicCubeClass;
 
 	/* Spawner reference */
 	UPROPERTY()
@@ -56,9 +56,6 @@ private:
 	in everi step of the pyramid */
 	UPROPERTY()
 	TArray<int32> PyramidSteps = { 3,3,2,2,1,1,0 };
-	
-	UPROPERTY()
-	TMap<int32, int32> TempMap;
 
 	/* Finds the spawner asset and stores a reference  */
 	void SetSpawner();
@@ -74,6 +71,10 @@ private:
 
 	/* Find neighbouring cubes and check if they are the same color of the given cube */
 	TArray<AMagicCube *> FindNearbyCubes(AMagicCube * Cube);
+	
+	/* Sort Function based on Recursive Insertion sort algorithm, 
+	it sorts the given array of ANGDTestPlayerState from Higher to lower score*/
+	void SortInsertion(TArray<class ANGDTestPlayerState *> & Array, int32 n);
 };
 
 

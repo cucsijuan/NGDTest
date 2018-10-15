@@ -5,7 +5,6 @@
 #include "NGDTestCharacter.h"
 #include "NGDTestPlayerState.h"
 #include "NGDTestGameStateBase.h"
-#include "NGDTestPlayerController.h"
 #include "Engine/World.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Kismet/GameplayStatics.h"
@@ -23,6 +22,7 @@ ANGDTestGameMode::ANGDTestGameMode()
 	HUDClass = ANGDTestHUD::StaticClass();
 	PlayerStateClass = ANGDTestPlayerState::StaticClass();
 	GameStateClass = ANGDTestGameStateBase::StaticClass();
+	MagicCubeClass = AMagicCube::StaticClass();
 	
 }
 
@@ -41,7 +41,6 @@ void ANGDTestGameMode::PostLogin(APlayerController * NewPlayer)
 
 void ANGDTestGameMode::CubeFound(AMagicCube * Cube, APlayerState * Player)
 {
-	//Cube->Explode(Player);
 	DestroyCube(Cube, Player);
 	Cast<ANGDTestPlayerState>(Player)->DoScore(ChainPositionToFibonacciRec(1));
 	CurrentCubes++;
@@ -50,18 +49,10 @@ void ANGDTestGameMode::CubeFound(AMagicCube * Cube, APlayerState * Player)
 
 void ANGDTestGameMode::CubeFound(AMagicCube * Cube, APlayerState * Player, int ChainPosition, TArray<AMagicCube *> ExplodedArray)
 {
-	//Cube->Explode(Player, ChainPosition, ExplodedArray);
 	DestroyCube(Cube, Player, ChainPosition, ExplodedArray);
 	Cast<ANGDTestPlayerState>(Player)->DoScore(ChainPositionToFibonacciRec(ChainPosition));
 	CurrentCubes++;
 	ShouldGameEnd(CurrentCubes);
-}
-
-int ANGDTestGameMode::ChainPositionToFibonacci(int ChainPosition)
-{
-	//We use Binet's Fibonacci Number Formula to get the value at a given index
-	return (FMath::Pow((1 + FMath::Sqrt(5)), ChainPosition) - FMath::Pow((1 - FMath::Sqrt(5)), ChainPosition)) /
-		(FMath::Pow(2, ChainPosition) * FMath::Sqrt(5));
 }
 
 int ANGDTestGameMode::ChainPositionToFibonacciRec(int ChainPosition)
@@ -78,37 +69,36 @@ int ANGDTestGameMode::ChainPositionToFibonacciRec(int ChainPosition)
 void ANGDTestGameMode::SortPlayerStatesByScore()
 {
 	ANGDTestGameStateBase * TempGameState = GetGameState<ANGDTestGameStateBase>();
+	TArray<ANGDTestPlayerState *> SortedPlayerArray;
 
 	for (auto& Player : TempGameState->PlayerArray)
 	{
-		TempGameState->SortedPlayers.Add(Cast<ANGDTestPlayerState>(Player));
+		SortedPlayerArray.Add(Cast<ANGDTestPlayerState>(Player));
 	};
-
-	SortBubble(TempGameState->SortedPlayers);
 	
-	TempGameState->MulticastSortedPlayers(TempGameState->SortedPlayers);
+	SortInsertion(SortedPlayerArray, SortedPlayerArray.Num() - 1);
+
+	TempGameState->MulticastSortedPlayers(SortedPlayerArray);
 
 }
 
-void ANGDTestGameMode::SortBubble(TArray<ANGDTestPlayerState *> & Array)
+void ANGDTestGameMode::SortInsertion(TArray<ANGDTestPlayerState*>& Array, int32 Index)
 {
-	int32 n = Array.Num();
-	bool swapped;
-	do
+	if (Index > 0)
 	{
-		swapped = false;
-		for (int32 i = 1; i <= n-1; i++)
+		SortInsertion(Array, Index - 1);
+
+		ANGDTestPlayerState * x = Array[Index];
+		int32 j = Index - 1;
+
+		while (j >= 0 && Array[j]->PlayerScore < x->PlayerScore)
 		{
-			if (Array[i - 1]->PlayerScore < Array[i]->PlayerScore)
-			{
-				ANGDTestPlayerState * Temp = Array[i - 1];
-				Array[i - 1] = Array[i];
-				Array[i] = Temp;
-				swapped = true;
-			}
+			Array[j + 1] = Array[j];
+			j = j - 1;
 		}
-		n = n - 1;
-	}while(swapped);
+		Array[j + 1] = x;
+	}
+		
 }
 
 void ANGDTestGameMode::ShouldGameEnd(int32 CurrentCubes)
@@ -132,7 +122,6 @@ void ANGDTestGameMode::SetSpawner()
 void ANGDTestGameMode::SpawnCube()
 {
 	UWorld* const World = GetWorld();
-	MagicCubeClass = AMagicCube::StaticClass();
 	
 	//an array with preloaded colors
 	TArray<int32> Colorlist = { 1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3 };

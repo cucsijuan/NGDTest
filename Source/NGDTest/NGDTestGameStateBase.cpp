@@ -2,13 +2,8 @@
 
 #include "NGDTestGameStateBase.h"
 #include "Engine/World.h"
-#include "Kismet/GameplayStatics.h"
-#include "ConstructorHelpers.h"
 #include "Net/UnrealNetwork.h"
 #include "NGDTestPlayerState.h"
-#include "NGDTestGameMode.h"
-#include "NGDTestPlayerController.h"
-#include "MagicCube.h"
 
 
 ANGDTestGameStateBase::ANGDTestGameStateBase()
@@ -26,7 +21,7 @@ bool ANGDTestGameStateBase::IsGameOver() const
 	return IsGameEnded;
 }
 
-void ANGDTestGameStateBase::MulticastSortedPlayers_Implementation(const TArray<class ANGDTestPlayerState *> & PlayersArray)
+void ANGDTestGameStateBase::MulticastSortedPlayers_Implementation(const TArray<ANGDTestPlayerState *> & PlayersArray)
 {
 	SortedPlayers = PlayersArray;
 }

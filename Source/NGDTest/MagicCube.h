@@ -20,15 +20,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Config")
 	float Speed = 250.f;
 
-	/* Look for matching cubes to explode, add score to player and destroy itself */
-	//UFUNCTION(NetMulticast,Reliable, WithValidation)
-	void Explode(class APlayerState * InstigatorState, int32 ChainPosition = 1, const TArray<AMagicCube *>& ExplodedCubes = {});
-	
 	/* sets color of the cube ColorNum must be a valid index of TArray <FColor> Colors  */
 	void AssignCubeColor(int32 ColorNum);
 	
 	/* Returns Color Index */
-	int GetColorName() const;
+	int32 GetColorName() const;
 	
 	/* Sets Color Index */
 	void SetColorName(int32 ColorID);
@@ -74,9 +70,6 @@ private:
 	/* Contains the location wich the cube has to move */
 	UPROPERTY()
 	FVector NewLocation;
-
-	/* Find neighbour cubes and checks if they are the same color of this cube */
-	TArray<AMagicCube *> FindNearbyCubes();
 
 	/* Replicates DynMaterial property*/
 	UFUNCTION()
