@@ -31,12 +31,6 @@ public:
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastSortedPlayers(const TArray<class ANGDTestPlayerState *> & PlayersArray);
 
-private:
-
-	/* Spawner reference */
-	UPROPERTY()
-	AActor * Spawner;
-
 protected:
 	/* Used by other objects to check if the game has ended */
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadWrite, Category = "Game State")
